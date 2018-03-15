@@ -2,38 +2,16 @@
 
 How does it configures and run
 
-<p> 1. In PostrgreSQL, create tables for rooms and guests: </p>
-
-<code>
-    CREATE TABLE IF NOT EXISTS rooms
-(
-    id SERIAL,
-    number INTEGER NOT NULL UNIQUE,
-    params TEXT,
-    beds INTEGER,
-    CONSTRAINT rooms_pkey PRIMARY KEY(id)
-);
-</code>
-
-
-<code>
-    CREATE TABLE IF NOT EXISTS guests
-(
-    id SERIAL,
-    name TEXT NOT NULL,
-    passport TEXT NOT NULL UNIQUE,
-    room_id INTEGER NOT NULL,
-    CONSTRAINT guests_pkey PRIMARY KEY(id)
-);
-</code>
+<p> 1. Use db.sql file to set up Postgres tables </p>
 
 <p>2. Configure PostgreSQL environment variables: </p>
 
-<code>
-    export APP_DB_USERNAME=youruser
-    export APP_DB_PASSWORD=yourpassword
-    export APP_DB_NAME=yourdbname
-</code>
+> export APP_DB_USERNAME=youruser
+
+> export APP_DB_PASSWORD=yourpassword
+
+> export APP_DB_NAME=yourdbname
+
 
 <p>3. Next: </p>
 
