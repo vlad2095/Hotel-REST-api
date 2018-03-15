@@ -42,7 +42,7 @@ func (r *Room) createRoom(db *sql.DB) error {
 	return nil
 }
 
-func (r *Room) GetGuests(db *sql.DB) error {
+func (r *Room) getRoomGuests(db *sql.DB) error {
 	rows, err := db.Query(
 		"SELECT id, name, passport FROM guests WHERE room_id=$1", r.ID)
 
@@ -66,6 +66,31 @@ func (r *Room) GetGuests(db *sql.DB) error {
 	return nil
 }
 
+func GetAllGuests(db *sql.DB) ([]Guest, error) {
+	rows, err := db.Query(
+		"SELECT id, name, passport, room_id FROM guests")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	guests := []Guest{}
+
+	for rows.Next() {
+		var g Guest
+		if err := rows.Scan(&g.ID, &g.Name, &g.Passport, &g.RoomID); err != nil {
+			return nil, err
+		}
+
+		guests = append(guests, g)
+	}
+
+	return guests, nil
+
+}
+
 func GetAllRoomsWithGuests(db *sql.DB) ([]Room, error) {
 	rows, err := db.Query(
 		"SELECT id, number,  params, beds FROM rooms")
@@ -83,7 +108,7 @@ func GetAllRoomsWithGuests(db *sql.DB) ([]Room, error) {
 		if err := rows.Scan(&r.ID, &r.Number, &r.Parameters, &r.Beds); err != nil {
 			return nil, err
 		}
-		err = r.GetGuests(db)
+		err = r.getRoomGuests(db)
 		if err != nil {
 			return nil, err
 		}
@@ -118,14 +143,15 @@ func (g *Guest) deleteGuest(db *sql.DB) error {
 }
 
 func (g *Guest) createGuest(db *sql.DB) error {
-	err := db.QueryRow(
-		"INSERT INTO guests(name, passport, room_id) VALUES($1, $2, $3) RETURNING id",
-		g.Name, g.Passport, g.RoomID).Scan(&g.ID)
-
+	err := g.checkRoom(db)
 	if err != nil {
 		return err
 	}
-	err = g.checkRoom(db)
+
+	err = db.QueryRow(
+		"INSERT INTO guests(name, passport, room_id) VALUES($1, $2, $3) RETURNING id",
+		g.Name, g.Passport, g.RoomID).Scan(&g.ID)
+
 	if err != nil {
 		return err
 	}
@@ -140,7 +166,7 @@ func (g *Guest) checkRoom(db *sql.DB) error {
 		return errors.New(fmt.Sprintf("Room with ID: %d does not exist", room.ID))
 
 	}
-	err = room.GetGuests(db)
+	err = room.getRoomGuests(db)
 	if err != nil {
 		return err
 	}
