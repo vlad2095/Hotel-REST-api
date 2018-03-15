@@ -1,1 +1,1 @@
-# Hotel-REST-api
+# REST-API-example
